@@ -200,7 +200,7 @@ class MultivariateGaussian:
             raise ValueError("Estimator must first be fitted before calling `pdf` function")
 
         cov_inv = inv(self.cov_)
-        exp_power = (X - self.mu_).transpose() @ cov_inv @ (X - self.mu_)
+        exp_power = np.sum((X - self.mu_) @ cov_inv * (X - self.mu_), axis=1)
         exp_power *= (-0.5)
         cov_det = det(self.cov_)
         sqrt_res = (np.sqrt(np.power(2 * np.pi, len(self.cov_)) * cov_det))
