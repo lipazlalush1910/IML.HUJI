@@ -54,11 +54,6 @@ class UnivariateGaussian:
         """
         self.mu_ = np.mean(X)
 
-        # mu_sum = 0
-        # for x in X:
-        #     mu_sum += x
-        # self.mu_ = mu_sum / X.size
-
         var_sum = 0
         for x in X:
             var_sum += np.power( (x-self.mu_), 2)
@@ -123,10 +118,9 @@ class UnivariateGaussian:
             log-likelihood calculated
         """
         dist_sum = 0
-        dist_var = np.power(sigma,2)
         for x in X:
             dist_sum += (x - mu) ** 2
-        return -(X.size /2) * np.log(2 * np.pi * dist_var) - (1/(2*dist_var))*dist_sum
+        return -(X.size /2) * np.log(2 * np.pi * sigma) - (1/(2*sigma))*dist_sum
 
 
 class MultivariateGaussian:
@@ -203,7 +197,7 @@ class MultivariateGaussian:
         exp_power = np.sum((X - self.mu_) @ cov_inv * (X - self.mu_), axis=1)
         exp_power *= (-0.5)
         cov_det = det(self.cov_)
-        sqrt_res = (np.sqrt(np.power(2 * np.pi, len(self.cov_)) * cov_det))
+        sqrt_res = (np.sqrt(np.power(2 * np.pi, cov.shape[0]) * cov_det))
 
         return (1 / sqrt_res) * np.exp(exp_power)
 
