@@ -169,9 +169,6 @@ if __name__ == '__main__':
     train_X = train_X.fillna(0).to_numpy()
     train_y = train_y.fillna(0).to_numpy()
 
-    # avg = cancellation_labels.to_numpy().mean()
-    # print("avg time from booking to canceling = ", avg)
-
     temp_X = temp_X.fillna(0).to_numpy()  # for train set
     estimator = AgodaCancellationEstimator().fit(train_X, train_y)
 
@@ -182,4 +179,4 @@ if __name__ == '__main__':
 
     # evaluate_and_export(estimator, temp_X, "id1_id2_id3.csv") # for train-set
 
-    evaluate_and_export(estimator, test_X, "id1_id2_id3.csv") # for test-set
+    evaluate_and_export(estimator, test_X, "208385633_315997874_206948911.csv") # for test-set
