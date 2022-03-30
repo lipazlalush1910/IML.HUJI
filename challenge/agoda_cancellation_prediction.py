@@ -104,10 +104,10 @@ def load_data(filename: str):
     2) Tuple of pandas.DataFrame and Series
     3) Tuple of ndarray of shape (n_samples, n_features) and ndarray of shape (n_samples,)
     """
+
     full_data = pd.read_csv(filename).dropna().drop_duplicates()
     insert_new_columns(full_data)
     data_conversion(full_data)
-
     features = full_data[["booking_datetime",
                           "time_from_booking_to_check_in",
                           "estimated_stay_time",
@@ -117,10 +117,38 @@ def load_data(filename: str):
                           "is_first_booking",
                           "avg_cancelling_fund_percent"]]
 
-    if "cancellation_datetime" in full_data.columns:
-        labels = full_data["cancelling_days_from_booking"]
-    else:
-        labels = []
+    labels = full_data["cancelling_days_from_booking"]
+    return features, labels
+
+
+def load_test_data(filename: str):
+    """
+    Load Agoda booking test dataset
+    Parameters
+    ----------
+    filename: str
+        Path to house prices dataset
+
+    Returns
+    -------
+    Design matrix and response vector in either of the following formats:
+    1) Single dataframe with last column representing the response
+    2) Tuple of pandas.DataFrame and Series
+    3) Tuple of ndarray of shape (n_samples, n_features) and ndarray of shape (n_samples,)
+    """
+
+    full_data = pd.read_csv(filename).drop_duplicates()
+    insert_new_columns(full_data)
+    data_conversion(full_data)
+    features = full_data[["booking_datetime",
+                          "time_from_booking_to_check_in",
+                          "estimated_stay_time",
+                          "guest_is_not_the_customer",
+                          "original_payment_type",
+                          "hotel_star_rating",
+                          "is_first_booking",
+                          "avg_cancelling_fund_percent"]]
+    labels = []
     return features, labels
 
 
@@ -148,12 +176,15 @@ def evaluate_and_export(estimator: BaseEstimator, X: np.ndarray, filename: str):
     res = []
     for i in range(len(X)):
         cancel_estimated = pd.to_datetime(X[i, 0])+pd.to_timedelta(prediction[i], unit="days")
+
         if pd.to_datetime("2018-12-07") <= cancel_estimated <= pd.to_datetime("2018-12-13"):
             res.append(1)
             counter_estimated += 1
         else:
             res.append(0)
+
     pd.DataFrame(res, columns=["predicted_values"]).to_csv(filename, index=False)
+    print("estimated: ", counter_estimated)
     return
 
 
@@ -173,7 +204,7 @@ if __name__ == '__main__':
     estimator = AgodaCancellationEstimator().fit(train_X, train_y)
 
     # Store model predictions over test set
-    df_test, cancellation_labels_test = load_data("../challenge/test_set_week_1.csv")
+    df_test, cancellation_labels_test = load_test_data("../challenge/test_set_week_1.csv")
     test_X, test_y, temp_X2, temp_y2 = split_train_test(df_test, cancellation_labels_test, train_proportion=1)
     test_X = test_X.fillna(0).to_numpy()
 
