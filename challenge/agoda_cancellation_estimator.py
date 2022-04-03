@@ -84,8 +84,3 @@ class AgodaCancellationEstimator(BaseEstimator):
             Performance under loss function
         """
         pass
-
-    def distance_func_by_fund(self, x1: np.ndarray, x2: np.ndarray):
-        partial_x1_fund = x1[16] / x1[8]
-        partial_x2_fund = x2[16] / x2[8]
-        return 1 if abs(partial_x1_fund - partial_x2_fund) <= 0.1 else 0
