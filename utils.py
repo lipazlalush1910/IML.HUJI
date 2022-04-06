@@ -97,7 +97,6 @@ def create_data_bagging_utils(d = 4, number_of_members = 1, n_samples = 1000):
     samples_of_half = "samples_of_half"
     x_1 = "x_1"; x_2 = "x_2"; y_1 = "y_1"; y_2 = "y_2"; tag = "tag"
     list_of_array = {0: {samples_of_half : samples, x_1 : 0, x_2 : 1, y_1 : 0, y_2 : 1}}
-
     for i in range(0, d):
         built_list =  {}
         for sample_curr_i, sample_curr in enumerate(list_of_array.values()):
