@@ -174,9 +174,9 @@ if __name__ == '__main__':
     estimator = AgodaCancellationEstimator().fit(train_X, train_y)
 
     # Store model predictions over test set
-    df_test, cancellation_labels_test = load_data("../challenge/test_set_week_1.csv")
-    test_X, test_y, temp_X2, temp_y2 = split_train_test(df_test, cancellation_labels_test, train_proportion=1)
-    test_X = test_X.fillna(0).to_numpy()
+    df_test, cancellation_labels_test = load_data("../challenge/test_set_week_2.csv")
+    # test_X, test_y, temp_X2, temp_y2 = split_train_test(df_test, cancellation_labels_test, train_proportion=1)
+    test_X = df_test.fillna(0).to_numpy()
 
     # evaluate_and_export(estimator, temp_X, "id1_id2_id3.csv") # for train-set
 
