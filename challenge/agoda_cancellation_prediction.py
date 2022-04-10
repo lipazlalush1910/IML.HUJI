@@ -154,7 +154,7 @@ def evaluate_and_export(estimator: BaseEstimator, X: np.ndarray, filename: str):
         else:
             res.append(0)
     pd.DataFrame(res, columns=["predicted_values"]).to_csv(filename, index=False)
-    print(counter_estimated)
+    # print(counter_estimated)
     return
 
 
