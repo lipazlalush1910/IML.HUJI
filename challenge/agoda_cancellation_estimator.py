@@ -3,10 +3,8 @@ from typing import NoReturn
 from IMLearn.base import BaseEstimator
 import numpy as np
 from sklearn.neighbors import KDTree
-from sklearn.neighbors import KNeighborsClassifier
 from sklearn import tree
 
-from sklearn import svm
 
 class AgodaCancellationEstimator(BaseEstimator):
     """
@@ -44,7 +42,7 @@ class AgodaCancellationEstimator(BaseEstimator):
         -----
 
         """
-        X = X[:,1:]
+        X = X[:, 1:]
         self.classifier.fit(X, y)
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
@@ -65,7 +63,6 @@ class AgodaCancellationEstimator(BaseEstimator):
         prediction = self.classifier.predict(X)
         return prediction
 
-
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
         Evaluate performance under loss function
@@ -83,4 +80,8 @@ class AgodaCancellationEstimator(BaseEstimator):
         loss : float
             Performance under loss function
         """
-        pass
+        squre_errors = 0
+        y_pred = self._predict(X)
+        for i in range(y.shape[0]):
+            squre_errors += np.power(y_pred[i] - y[i], 2)
+        return squre_errors / y.shape[0]
