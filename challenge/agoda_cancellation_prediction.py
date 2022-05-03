@@ -119,6 +119,7 @@ def load_data(filename: str):
     3) Tuple of ndarray of shape (n_samples, n_features) and ndarray of shape (n_samples,)
     """
     full_data = pd.read_csv(filename).drop_duplicates()
+    full_test_data = add_test_data()
     data_conversion(full_data)
     country_code(full_data)
     features = full_data[["booking_datetime",
@@ -137,6 +138,15 @@ def load_data(filename: str):
         labels = []
     return features, labels
 
+
+def add_test_data():
+    df = pd.DataFrame()
+    for i in range(1,5):
+        test_set = pd.read_csv(f"test_set_week_{i}.csv")
+        test_set_labels = pd.read_csv(f"test_set_week_{i}_labels.csv")
+        test_set["label"] = test_set_labels["h_booking_id|label"].str.split("|", expand=True)[1]
+        df = pd.concat([df,test_set])
+    return df
 
 def evaluate_and_export(estimator: BaseEstimator, X: np.ndarray, filename: str):
     """
