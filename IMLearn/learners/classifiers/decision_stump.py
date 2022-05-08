@@ -118,8 +118,8 @@ class DecisionStump(BaseEstimator):
         sorted_vals = np.sort(values)
         sorted_labels = np.take(labels, sotred_index)
         sign_labels = np.sign(sorted_labels)
-        min_thr_err = 1
         min_thr = np.inf
+        min_thr_err = 1
         temp_labels_by_thr = np.ones(values.shape[0]) * sign
 
         for i in range(sorted_vals.shape[0]):
