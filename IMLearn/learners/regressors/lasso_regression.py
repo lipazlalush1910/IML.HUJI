@@ -114,4 +114,5 @@ class LassoRegression(BaseEstimator):
         loss : float
             Performance under MSE loss function
         """
+
         raise NotImplementedError()
