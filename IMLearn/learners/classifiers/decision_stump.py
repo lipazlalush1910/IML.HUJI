@@ -129,6 +129,7 @@ class DecisionStump(BaseEstimator):
                 min_thr_err = temp_err_by_thr
                 min_thr = sorted_vals[i]
             temp_labels_by_thr[i] = -sign
+        
         return min_thr, min_thr_err
 
 

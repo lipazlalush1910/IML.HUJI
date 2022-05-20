@@ -229,7 +229,7 @@ if __name__ == '__main__':
 
     df = drop_data(df)
 
-    hot_enc = preprocessing.OneHotEncoder(sparse=False)
+    hot_enc = preprocessing.OneHotEncoder(sparse=False,handle_unknown="ignore")
     label_enc = preprocessing.OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)
 
     list_to_hot_encode = ['accommadation_type_name', 'charge_option', 'original_payment_type',
@@ -256,7 +256,7 @@ if __name__ == '__main__':
 
     clf.fit(df, label_bool)
     reg.fit(df_cancel, label_time)
-    full_test = load_data("test_set_week_5.csv")
+    full_test = load_data("week_6_test_data.csv")
 
     df_test = drop_data(full_test)
     df_test = preprocess_data(df_test, hot_enc, label_enc)
@@ -270,5 +270,5 @@ if __name__ == '__main__':
     res_1 = pd.to_datetime("2018-12-07") <= date_cancel
     res_2 = date_cancel <= pd.to_datetime("2018-12-13")
     res_all = res_1 & res_2
-    pd.DataFrame(res_all.astype(int), columns=["predicted_values"]).to_csv('208385633_315997874_206948911_test_5.csv', index=False)
+    pd.DataFrame(res_all.astype(int), columns=["predicted_values"]).to_csv('208385633_315997874_206948911_test_6.csv', index=False)
 
