@@ -38,13 +38,12 @@ def select_polynomial_degree(n_samples: int = 100, noise: float = 5):
     train_X, train_y, test_X, test_y = split_train_test(pd.DataFrame(X), pd.DataFrame(y), 2/3)
 
     fig1 = go.Figure()
-    fig1.add_trace(go.Scatter(x=X, y=y_noiseless, mode="markers", name="noiseless"))
+    fig1.add_trace(go.Scatter(x=X, y=y_noiseless, mode="markers", name="polynom"))
     fig1.add_trace(go.Scatter(x=train_X[0], y=train_y[0], mode="markers",
                              marker=dict(color="Red",colorscale=[custom[0], custom[-1]]), name="train"))
     fig1.add_trace(go.Scatter(x=test_X[0], y=test_y[0], mode="markers",
                              marker=dict(color="Purple", colorscale=[custom[0], custom[-1]]), name="test"))
-    fig1.update_layout(title=f"Model of {n_samples} samples without noise and train and test sets of "
-                             f"model with noise {noise}")
+    fig1.update_layout(title=f"Model of {n_samples} samples with noise {noise} - train and test sets")
     fig1.show()
 
     f_train_X = np.array(train_X).flatten()
@@ -61,7 +60,8 @@ def select_polynomial_degree(n_samples: int = 100, noise: float = 5):
     fig2 = go.Figure()
     fig2.add_trace(go.Scatter(x=[i for i in range(11)], y=training_avg, name="average training error"))
     fig2.add_trace(go.Scatter(x=[i for i in range(11)], y=validation_avg, name="average validation error"))
-    fig2.update_layout(title="Average trainging and validation errors as a function of polynomial degrees",
+    fig2.update_layout(title=f"Average training and validation score as a function of polynomial degree of model with "
+                             f"{n_samples} samples and {noise} noise",
                        xaxis_title="degree")
     fig2.show()
 
@@ -123,7 +123,7 @@ def select_regularization_parameter(n_samples: int = 50, n_evaluations: int = 50
                              marker=dict(color="Purple",colorscale=[custom[0], custom[-1]]),
                              name="average Lasso validation error"))
 
-    fig.update_layout(title="Average trainging and validation errors as a function of regularization parameter value",
+    fig.update_layout(title="Average training and validation error as a function of regularization parameter value",
                        xaxis_title="regularization parameter value")
     fig.show()
 
