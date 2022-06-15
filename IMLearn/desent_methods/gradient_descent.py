@@ -4,6 +4,7 @@ import numpy as np
 
 from IMLearn.base import BaseModule, BaseLR
 from .learning_rate import FixedLR
+from numpy.linalg import norm
 
 OUTPUT_VECTOR_TYPE = ["last", "best", "average"]
 
@@ -117,6 +118,70 @@ class GradientDescent:
                 Learning rate used at current iteration
             - delta: float
                 Euclidean norm of w^(t)-w^(t-1)
-
         """
-        raise NotImplementedError()
+
+        sum_sol = np.zeros(f.weights.shape[0])
+        best_sol = f.weights
+        best_norm_sol = f.compute_output(X=X, y=y)
+        num_inter = 0
+
+        for t in range(self.max_iter_):
+            sum_sol += f.weights
+            old_weights = f.weights
+            cur_jacob = f.compute_jacobian(X=X, y=y)
+            step = self.learning_rate_.lr_step(t=t)
+            f.weights = f.weights - step * cur_jacob
+            cur_sol = f.compute_output(X=X, y=y)
+
+            if cur_sol < best_norm_sol:
+                best_sol = f.weights
+                best_norm_sol = cur_sol
+            delta = np.linalg.norm(f.weights - old_weights)
+            num_inter += 1
+
+            self.callback_(solver=self, weights=f.weights, val=cur_sol, grad= cur_jacob, t=t,
+                           eta=self.learning_rate_.lr_step(t=t), delta=delta)
+            if delta < self.tol_:
+                break
+
+        if self.out_type_ == OUTPUT_VECTOR_TYPE[0]:
+            return f.weights
+        if self.out_type_ == OUTPUT_VECTOR_TYPE[1]:
+            return best_sol
+        if self.out_type_ == OUTPUT_VECTOR_TYPE[2]:
+            return sum_sol * (1/num_inter)
+
+        # x_t_arr = []
+        # w = f.weights
+        # x_t_arr.append(w)
+        # best_w = w
+        # best_obj = f.compute_output(X=X, y=y)
+        #
+        # for t in range(self.max_iter_):
+        #     etha = self.learning_rate_.lr_step(t=t)
+        #     cur_grad = f.compute_jacobian(X=X, y=y)
+        #
+        #     new_w = w - etha*cur_grad
+        #     dist = np.linalg.norm(w-new_w)
+        #
+        #     w = new_w
+        #     f.weights = new_w
+        #
+        #     cur_obj = f.compute_output(X=X, y=y)
+        #     if cur_obj < best_obj:
+        #         best_obj = cur_obj
+        #         best_w = w
+        #     x_t_arr.append(w)
+        #     self.callback_(self, w, cur_obj, cur_grad, t, etha, dist)
+        #
+        #     if dist < self.tol_:
+        #         break
+        #
+        # if self.out_type_ == "last":
+        #     return x_t_arr[-1]
+        # if self.out_type_ == "best":
+        #     return best_w
+        # if self.out_type_ == "average":
+        #     return np.mean(np.ndarray(x_t_arr))
+        #
+

@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from typing import Tuple, List, Callable, Type
 
-from IMLearn import BaseModule
+from IMLearn.base import BaseModule
 from IMLearn.desent_methods import GradientDescent, FixedLR, ExponentialLR
 from IMLearn.desent_methods.modules import L1, L2
 from IMLearn.learners.classifiers.logistic_regression import LogisticRegression
@@ -73,12 +73,46 @@ def get_gd_state_recorder_callback() -> Tuple[Callable[[], None], List[np.ndarra
     weights: List[np.ndarray]
         Recorded parameters
     """
-    raise NotImplementedError()
+    values = []
+    list_of_weights = []
+
+    def callback(solver, weights, val, grad, t, eta, delta):
+        values.append(val)
+        list_of_weights.append(weights)
+    return callback, values, list_of_weights
 
 
 def compare_fixed_learning_rates(init: np.ndarray = np.array([np.sqrt(2), np.e / 3]),
                                  etas: Tuple[float] = (1, .1, .01, .001)):
-    raise NotImplementedError()
+    X = np.array([])
+    y = np.array([])
+    for eta in etas:
+        module_l1 = L1(init)
+        module_l2 = L2(init)
+        lr = FixedLR(eta)
+        callback_l1, values_l1, weights_l1 = get_gd_state_recorder_callback()
+        GradientDescent(learning_rate=lr, callback=callback_l1).fit(f=module_l1, X=X, y=y)
+        L1_fig = plot_descent_path(L1, np.concatenate(weights_l1, axis=0).reshape(len(weights_l1), len(init)),
+                                   title=f"L1 Module: eta={eta}")
+        L1_fig.show()
+
+        callback_l2, values_l2, weights_l2 = get_gd_state_recorder_callback()
+        GradientDescent(learning_rate=lr, callback=callback_l2).fit(f=module_l2, X=X, y=y)
+        L2_fig = plot_descent_path(L2, np.concatenate(weights_l2, axis=0).reshape(len(weights_l2), len(init)),
+                                   title=f"L2 Module: eta={eta}")
+        L2_fig.show()
+
+        fig3 = go.Figure()
+        fig3.add_trace(go.Scatter(x=[i for i in range(len(values_l1))], y=values_l1, mode="markers",name="norm L1"))
+        fig3.update_layout(title=f"Convergence rate of norm L1 as a function of iteration number, step size = {eta}",
+                          xaxis_title="iteration number")
+        fig3.show()
+
+        fig4 = go.Figure()
+        fig4.add_trace(go.Scatter(x=[i for i in range(len(values_l2))], y=values_l2, mode="markers", name="norm L2"))
+        fig4.update_layout(title=f"Convergence rate of norm L2 as a function of iteration number, step size = {eta}",
+                           xaxis_title="iteration number")
+        fig4.show()
 
 
 def compare_exponential_decay_rates(init: np.ndarray = np.array([np.sqrt(2), np.e / 3]),
