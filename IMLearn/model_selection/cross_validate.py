@@ -5,20 +5,19 @@ import numpy as np
 from IMLearn import BaseEstimator
 
 
-def getExcludedSet(X: np.ndarray, y: np.ndarray, exclude_index: int, cv: int):
-    excluded_X = np.array([])
-    excluded_y = np.array([])
+def getFoldedSet(folded_X, folded_y, ind, cv):
+    updated_folded_X = np.array([])
+    updated_folded_y = np.array([])
     for i in range(cv):
-        if i == exclude_index:
+        if i == ind:
             continue
-        if excluded_X.size == 0 and excluded_y.size == 0:
-            excluded_X = X[i]
-            excluded_y = y[i]
+        if updated_folded_X.size == 0 and updated_folded_y.size == 0:
+            updated_folded_X = folded_X[i]
+            updated_folded_y = folded_y[i]
         else:
-            excluded_X = np.concatenate((excluded_X, X[i]))
-            excluded_y = np.concatenate((excluded_y, y[i]))
-    return excluded_X, excluded_y
-
+            updated_folded_X = np.concatenate((updated_folded_X, folded_X[i]))
+            updated_folded_y = np.concatenate((updated_folded_y, folded_y[i]))
+    return updated_folded_X, updated_folded_y
 
 
 def cross_validate(estimator: BaseEstimator, X: np.ndarray, y: np.ndarray,
@@ -53,19 +52,19 @@ def cross_validate(estimator: BaseEstimator, X: np.ndarray, y: np.ndarray,
     validation_score: float
         Average validation score over folds
     """
-    folds_X = np.array_split(X, cv)
-    folds_y = np.array_split(y, cv)  
-    train_score = np.zeros(cv)
-    validation_score = np.zeros(cv)
+    folded_X = np.array_split(X, cv)
+    folded_y = np.array_split(y, cv)
+    train_score = []
+    validation_score = []
     for i in range(cv):
-        test_X_i = folds_X[i]
-        test_y_i = folds_y[i]
-
-        train_X_i, train_y_i = getExcludedSet(folds_X, folds_y, i, cv)
-
-        estimator.fit(train_X_i, train_y_i)
-        train_score[i] = scoring(y, estimator.predict(X))
-        validation_score[i] = scoring(test_y_i, estimator.predict(test_X_i))
-    return np.mean(train_score), np.mean(validation_score)
-
-
+        test_set_X = folded_X[i]
+        test_set_y = folded_y[i]
+        train_set_X, train_set_y = getFoldedSet(folded_X, folded_y, i, cv)
+        estimator.fit(train_set_X, train_set_y)
+        prediction = estimator.predict(X)
+        test_prediction = estimator.predict(test_set_X)
+        train_score.append(scoring(y, prediction))
+        validation_score.append(scoring(test_set_y, test_prediction))
+    validation_score = np.array(validation_score)
+    train_score = np.array(train_score)
+    return np.sum(train_score) / cv, np.sum(validation_score) / cv

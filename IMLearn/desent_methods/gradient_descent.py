@@ -1,15 +1,16 @@
 from __future__ import annotations
+
+import copy
 from typing import Callable, NoReturn
 import numpy as np
 
 from IMLearn.base import BaseModule, BaseLR
 from .learning_rate import FixedLR
-from numpy.linalg import norm
 
 OUTPUT_VECTOR_TYPE = ["last", "best", "average"]
 
 
-def default_callback(model: GradientDescent, **kwargs) -> NoReturn:
+def default_callback(**kwargs) -> NoReturn:
     pass
 
 
@@ -35,10 +36,10 @@ class GradientDescent:
             - `best`: returns the point achieving the lowest objective
             - `average`: returns the average point over the GD iterations
 
-    callback_: Callable[[GradientDescent, ...], None]
-        A callable function to be called after each update of the model while fitting to given data
-        Callable function should receive as input a GradientDescent instance, and any additional
-        arguments specified in the `GradientDescent.fit` function
+    callback_: Callable[[...], None], default=default_callback
+        A callable function to be called after each update of the model while fitting to given data.
+        Callable function receives as input any argument relevant for the current GD iteration. Arguments
+        are specified in the `GradientDescent.fit` function
     """
     def __init__(self,
                  learning_rate: BaseLR = FixedLR(1e-3),
@@ -64,10 +65,10 @@ class GradientDescent:
         out_type: str, default="last"
             Type of returned solution. Supported types are specified in class attributes
 
-        callback: Callable[[GradientDescent, ...], None], default=default_callback
-            A callable function to be called after each update of the model while fitting to given data
-            Callable function should receive as input a GradientDescent instance, and any additional
-            arguments specified in the `GradientDescent.fit` function
+        callback: Callable[[...], None], default=default_callback
+            A callable function to be called after each update of the model while fitting to given data.
+            Callable function receives as input any argument relevant for the current GD iteration. Arguments
+            are specified in the `GradientDescent.fit` function
         """
         self.learning_rate_ = learning_rate
         if out_type not in OUTPUT_VECTOR_TYPE:
@@ -118,70 +119,36 @@ class GradientDescent:
                 Learning rate used at current iteration
             - delta: float
                 Euclidean norm of w^(t)-w^(t-1)
+
         """
-
-        sum_sol = np.zeros(f.weights.shape[0])
-        best_sol = f.weights
-        best_norm_sol = f.compute_output(X=X, y=y)
-        num_inter = 0
-
+        if f.weights is None:
+            f.weights(np.random.rand(X.shape[1]))
+        best_solution = f.weights_
+        best_value = f.compute_output(X=X, y=y)
+        solution_sum = np.zeros(f.weights_.shape[0])
+        iter = 0
         for t in range(self.max_iter_):
-            sum_sol += f.weights
-            old_weights = f.weights
-            cur_jacob = f.compute_jacobian(X=X, y=y)
-            step = self.learning_rate_.lr_step(t=t)
-            f.weights = f.weights - step * cur_jacob
-            cur_sol = f.compute_output(X=X, y=y)
+            solution_sum += f.weights_
+            prev_weights = f.weights_
+            step_size = self.learning_rate_.lr_step(t=t)
+            jacob_res = f.compute_jacobian(X=X, y=y)
 
-            if cur_sol < best_norm_sol:
-                best_sol = f.weights
-                best_norm_sol = cur_sol
-            delta = np.linalg.norm(f.weights - old_weights)
-            num_inter += 1
+            f.weights = f.weights_ - step_size * jacob_res
+            cur_norm = f.compute_output(X=X, y=y)
 
-            self.callback_(solver=self, weights=f.weights, val=cur_sol, grad= cur_jacob, t=t,
-                           eta=self.learning_rate_.lr_step(t=t), delta=delta)
+            if cur_norm < best_value:
+                best_value = cur_norm
+                best_solution = f.weights_
+
+            delta = np.linalg.norm(f.weights_ - prev_weights)
+            self.callback_(solver=self, weights=f.weights_, val=cur_norm, grad=jacob_res,t=t,
+                           eta=step_size, delta=delta)
             if delta < self.tol_:
                 break
-
+            iter += 1
         if self.out_type_ == OUTPUT_VECTOR_TYPE[0]:
             return f.weights
-        if self.out_type_ == OUTPUT_VECTOR_TYPE[1]:
-            return best_sol
-        if self.out_type_ == OUTPUT_VECTOR_TYPE[2]:
-            return sum_sol * (1/num_inter)
-
-        # x_t_arr = []
-        # w = f.weights
-        # x_t_arr.append(w)
-        # best_w = w
-        # best_obj = f.compute_output(X=X, y=y)
-        #
-        # for t in range(self.max_iter_):
-        #     etha = self.learning_rate_.lr_step(t=t)
-        #     cur_grad = f.compute_jacobian(X=X, y=y)
-        #
-        #     new_w = w - etha*cur_grad
-        #     dist = np.linalg.norm(w-new_w)
-        #
-        #     w = new_w
-        #     f.weights = new_w
-        #
-        #     cur_obj = f.compute_output(X=X, y=y)
-        #     if cur_obj < best_obj:
-        #         best_obj = cur_obj
-        #         best_w = w
-        #     x_t_arr.append(w)
-        #     self.callback_(self, w, cur_obj, cur_grad, t, etha, dist)
-        #
-        #     if dist < self.tol_:
-        #         break
-        #
-        # if self.out_type_ == "last":
-        #     return x_t_arr[-1]
-        # if self.out_type_ == "best":
-        #     return best_w
-        # if self.out_type_ == "average":
-        #     return np.mean(np.ndarray(x_t_arr))
-        #
-
+        elif self.out_type_ == OUTPUT_VECTOR_TYPE[1]:
+            return best_solution
+        else:
+            return (1 / iter) * solution_sum
